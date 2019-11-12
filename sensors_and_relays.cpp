@@ -2,22 +2,24 @@
 #include "circuit.h"
 #include "shared.h"
 #include "configuration.h"
+#include "sensors_and_relays.h"
 
 int current_position_mix_valve = 0;
 
-int _readTempInCel(int sensorPin){
-    return analogRead(sensorPin)/10 -273;
+float _readTempInCel(int sensorPin){
+  float sensorValue = analogRead(sensorPin);
+  return (sensorValue*5000)/10240 -273;
 }
 
-int getFloorInletTemp(){
-    return _readTempInCel(TEMP_FLOOR_INTAKE);
+float getFloorInletTemp(){
+    return _readTempInCel(TEMP_FLOOR_INLET);
 }
 
-int getFloorOutletTemp(){
+float getFloorOutletTemp(){
     return _readTempInCel(TEMP_FLOOR_OUTLET);
 }
 
-int getFurniceTemp(){
+float getFurniceTemp(){
     return _readTempInCel(TEMP_FURNICE);
 }
 
@@ -60,7 +62,7 @@ int openMixValveOneStep(){
     
 }
 
-void setToPosition(int position){
+int setToPosition(int position){
     int positions_to_move = current_position_mix_valve-position;
 
     if(position == 0){
@@ -95,7 +97,6 @@ void setToPosition(int position){
 
 int closeMixValveOneStep(){
     
-    turnOnMixValveLight();
 
     decreaseTemp();
     if(millis() - timer_close_mix_valve_one_step.start_time > TIME_FOR_STEP_MS){
@@ -125,8 +126,8 @@ void increaseTemp(){
 }
 
 void decreaseTemp(){
-    digitalWrite(RELAY_DECREASE_TEMP,1);
-    digitalWrite(RELAY_INCREASE_TEMP,0);
+    digitalWrite(RELAY_DECREASE_TEMP,0);
+    digitalWrite(RELAY_INCREASE_TEMP,1);
 }
 
 void stopMixValve(){

@@ -1,13 +1,21 @@
 #ifndef _SENSORS_AND_RELAYS_H
 #define _SENSORS_AND_RELAYS_H
 
-int getFloorInletTemp();
-int getFloorOutletTemp();
-int getFurniceTemp();
+float getFloorInletTemp();
+float getFloorOutletTemp();
+float getFurniceTemp();
 
 void startPump();
 void stopPump();
 void decreaseTemp();
-void setToPosition(int position);
+void stopMixValve();
+int closeMixValve();
+int closeMixValveOneStep();
+int setToPosition(int position);
+void turnOnMixValveLight();
+
+void increaseTemp();
+void stopMixValve();
+void turnOffMixValveLight();
 
 #endif
