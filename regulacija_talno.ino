@@ -1,12 +1,6 @@
 // temp senzor: https://randomnerdtutorials.com/arduino-lm35-lm335-lm34-temperature-sensor/
 
-int sensorPin = 1;
-int lowerTempPin = 2;
-int increaseTempPin = 3;
-int pumpPin = 4;
 
-int temperatureSet = 20;
-int tempRecieving=0;
 
 // Taski:
 //  mer temperaturo
@@ -23,8 +17,25 @@ int readTempInCel(){
     return analogRead(sensorPin)/10 -273;
 }
 
+int temp_wanted = INITIAL_TEMPERATURE;
+
+int TOO_HOT = false;
+
 void loop(){
-    int tempOnLine = readTempInCel();
+    int temp_floor_inlet    = getFloorInletTemp();
+    int temp_floor_outlet   = getFloorOutletTemp();
+    int temp_furnice        = getFurniceTemp();
+
+    control(temp_wanted, temp_floor_inlet, temp_floor_outlet, temp_furnice);
+
+    int serialData[2];
+    getFromSerial(&serialData);
+
+    if(getFloorInletTemp() >= MAX_INLET_TEMP){
+        TOO_HOT = true;
+    }
+
+    /*int tempOnLine = readTempInCel();
     
     // prižgi pumpo ko je temperatura manjša od nastavljene
     if(tempOnLine < temperatureSet){
@@ -92,7 +103,7 @@ void loop(){
         Serial.println("Za nastavitev temperature vpišite: T{temp} npr.: T20");
         tempRecieving=0;
     }
-    delay(10);
+    delay(10);*/
 
 
 
