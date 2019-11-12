@@ -1,5 +1,5 @@
 // temp senzor: https://randomnerdtutorials.com/arduino-lm35-lm335-lm34-temperature-sensor/
-
+#include "circuit.h"
 
 
 // Taski:
@@ -22,6 +22,7 @@ int temp_wanted = INITIAL_TEMPERATURE;
 int TOO_HOT = false;
 
 void loop(){
+    int start_time = millis();
     int temp_floor_inlet    = getFloorInletTemp();
     int temp_floor_outlet   = getFloorOutletTemp();
     int temp_furnice        = getFurniceTemp();
@@ -33,6 +34,22 @@ void loop(){
 
     if(getFloorInletTemp() >= MAX_INLET_TEMP){
         TOO_HOT = true;
+    }
+
+    if(millis()-start_time > 1000){
+        Serial.write("Temperature floor inlet: ");
+        Serial.write(temp_floor_inlet);
+        Serial.write("; Temperature floor outlet: ");
+        Serial.write(temp_floor_outlet);
+        Serial.write("; Temperature furnice: ");
+        Serial.writeln(temp_furnice);
+        Serial.write("Relay mixer decrease: ");
+        Serial.write(!digitalRead(RELAY_DECREASE_TEMP));
+        Serial.write("; Relay mixer increase: ");
+        Serial.write(!digitalRead(RELAY_INCREASE_TEMP));
+        Serial.write("; Relay pump: ");
+        Serial.writeln(!digitalRead(RELAY_PUMP));
+        Serial.writeln();
     }
 
     /*int tempOnLine = readTempInCel();
