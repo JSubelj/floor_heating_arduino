@@ -1,12 +1,13 @@
+#include "Arduino.h"
 #include "configuration.h"
 #include "circuit.h"
+#include "shared.h"
 
 void initialisation(){
     long start_time = millis();
     decreaseTemp();
     while(millis()-start_time) < TIME_MIN_MAX_MIXER_MS * 2);
     startPump();
-    position_mix_valve = 0;
 }
 
 int calculatePositionOfMixValve(int temp_wanted, int temp_floor_inlet, int temp_floor_outlet, int temp_furnice){
@@ -29,7 +30,7 @@ int calculatePositionOfMixValve(int temp_wanted, int temp_floor_inlet, int temp_
 
 int state=0;
 bool newValue = true;
-int position = 0;
+int wanted_position = 0;
 unsigned long start_waiting;
 void control(int temp_wanted, int temp_floor_inlet, int temp_floor_outlet, int temp_furnice){
     switch (state)
@@ -48,10 +49,10 @@ void control(int temp_wanted, int temp_floor_inlet, int temp_floor_outlet, int t
             stopPump();
         }
         if(newValue){
-            position = calculatePositionOfMixValve(temp_wanted, temp_floor_inlet, temp_floor_outlet, temp_furnice);
+            wanted_position = calculatePositionOfMixValve(temp_wanted, temp_floor_inlet, temp_floor_outlet, temp_furnice);
             newValue = false;
         }
-        if(setToPosition(position){
+        if(setToPosition(wanted_position){
             newValue = true;
             state++;
         }        

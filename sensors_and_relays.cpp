@@ -1,6 +1,9 @@
+#include "Arduino.h"
 #include "circuit.h"
+#include "shared.h"
+#include "configuration.h"
 
-int position_mix_valve = 0;
+int current_position_mix_valve = 0;
 
 int _readTempInCel(int sensorPin){
     return analogRead(sensorPin)/10 -273;
@@ -34,7 +37,7 @@ int closeMixValve(){
     if(millis() - timer_close_mix_valve.start_time > TIME_MIN_MAX_MIXER_MS * 1.5){
         stopMixValve();
         turnOffMixValveLight();
-        position_mix_valve = 0;
+        current_position_mix_valve = 0;
         timer_close_mix_valve.operational = false;
         return 1;
     }
@@ -49,8 +52,8 @@ int openMixValveOneStep(){
         timer_open_mix_valve_one_step.operational = false;
         stopMixValve();
         turnOffMixValveLight();
-        position_mix_valve++;
-        position_mix_valve = position_mix_valve > STEPS ? STEPS : position_mix_valve;
+        current_position_mix_valve++;
+        current_position_mix_valve = current_position_mix_valve > STEPS ? STEPS : current_position_mix_valve;
         return 1;
     }
     return 0;    
@@ -58,7 +61,7 @@ int openMixValveOneStep(){
 }
 
 void setToPosition(int position){
-    int positions_to_move = position_mix_valve-position;
+    int positions_to_move = current_position_mix_valve-position;
 
     if(position == 0){
         if(!timer_close_mix_valve.operational){
@@ -66,7 +69,7 @@ void setToPosition(int position){
             timer_close_mix_valve.start_time = millis();
         }
         int ret = closeMixValve();
-        return ret && position == position_mix_valve;
+        return ret && position == current_position_mix_valve;
     }
 
     if(positions_to_move < 0){
@@ -75,7 +78,7 @@ void setToPosition(int position){
             timer_open_mix_valve_one_step.start_time = millis();
         }
         int ret = openMixValveOneStep();
-        return ret && position == position_mix_valve;
+        return ret && position == current_position_mix_valve;
         
     }else if(positions_to_move > 0){
         if(!timer_close_mix_valve_one_step.operational){
@@ -84,7 +87,7 @@ void setToPosition(int position){
         }
         
         int ret = closeMixValveOneStep();
-        return ret && position == position_mix_valve;
+        return ret && position == current_position_mix_valve;
         
     }
     return 1;
@@ -99,8 +102,8 @@ int closeMixValveOneStep(){
         stopMixValve();
         turnOffMixValveLight();
 
-        position_mix_valve--;
-        position_mix_valve = position_mix_valve < 0 ? 0 : position_mix_valve;
+        current_position_mix_valve--;
+        current_position_mix_valve = current_position_mix_valve < 0 ? 0 : current_position_mix_valve;
         timer_close_mix_valve_one_step.operational = false;
         return 1;
     }

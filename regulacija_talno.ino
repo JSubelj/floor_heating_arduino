@@ -1,6 +1,7 @@
 // temp senzor: https://randomnerdtutorials.com/arduino-lm35-lm335-lm34-temperature-sensor/
+#include "Arduino.h"
 #include "circuit.h"
-
+#include "shared.h"
 
 // Taski:
 //  mer temperaturo
@@ -49,6 +50,10 @@ void loop(){
         Serial.write(!digitalRead(RELAY_INCREASE_TEMP));
         Serial.write("; Relay pump: ");
         Serial.writeln(!digitalRead(RELAY_PUMP));
+        Serial.write("Current position: ");
+        Serial.write(current_position_mix_valve);
+        Serial.write("; Wanted position: ");
+        Serial.writeln(wanted_position);
         Serial.writeln();
     }
 
