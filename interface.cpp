@@ -21,23 +21,21 @@ void set_leds(int temp){
     }
 }
 
-unsigned long start_time = millis();
 void read_input(int wanted_temp){
     static int old_state_up = 1;
     static int old_state_down = 1;
-    if(millis()-start_time >50){
-        int new_state = digitalRead(BUTTON_TEMP_UP)
-        if(old_state_up = 1 && new_state == 0){
-            wanted_temp += 5;
-        }
-        old_state_up = new_state;
-        new_state = digitalRead(BUTTON_TEMP_DOWN);
-        if(old_state_down = 1 && new_state == 0){
-            wanted_temp -= 5;
-        }
-        old_state_down = new_state;
-        start_time = millis();
+    int new_state = digitalRead(BUTTON_TEMP_UP)
+    if(old_state_up = 1 && new_state == 0){
+        wanted_temp += 5;
     }
+    old_state_up = new_state;
+
+    new_state = digitalRead(BUTTON_TEMP_DOWN);
+    if(old_state_down = 1 && new_state == 0){
+        wanted_temp -= 5;
+    }
+    old_state_down = new_state;
+
     wanted_temp = wanted_temp > 55? 55 : wanted_temp;
     wanted_temp = wanted_temp < 10? 10 : wanted_temp;
 
