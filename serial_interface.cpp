@@ -1,5 +1,14 @@
 #include "Arduino.h"
+#include <string.h>
 
+void EEPROMSaveConfig(struct EEPROMData *data){
+    data->save_indicator = 1488;
+    EEPROM.put(0,data);
+}
+
+void EEPROMLoadConfig(struct EEPROMData *data){
+    EEPROM.get(0, data);
+}
 
 void getFromSerial(int * serialData){
     int new_temp;
@@ -24,8 +33,31 @@ void getFromSerial(int * serialData){
                 Serial.print(*(serialData+1));
                 Serial.println(" °C");
             }
-        }else{
+        }else if(str[0] == 'c'){
+            char substring[7];
+            *serialData = 0;
+            strncpy(substring, (&str+1),6);
+            bool found_end = false;
+            for(int i=0;i<7;i++){
+                if(substring[i] == ';'){
+                    substring[i] = 0;
+                    found_end = true;
+                    break;
+                }
+            }
+            
+            if(!found_end){
+                Serial.println("Ukaz za popravek temperature: 'c{4 mestna stevilka};");
+            }
+            *serialData = 2;
+            *(serialData+1) = atoi(substring);
+
+        }
+        
+        else{
             Serial.println("Ukaz za spremembo temperature: 't{dvo mesta številka};'");
+            Serial.println("Ukaz za popravek temperature: 'c{4 mestna stevilka};");
+
         }
         
     }

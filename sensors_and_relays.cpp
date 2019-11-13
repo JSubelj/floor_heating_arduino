@@ -8,7 +8,7 @@ int current_position_mix_valve = 0;
 
 float _readTempInCel(int sensorPin){
   float sensorValue = analogRead(sensorPin);
-  return (sensorValue*5000)/10240 -273;
+  return (sensorValue*5000)/10230 -273 + temp_correction;
 }
 
 float getFloorInletTemp(){

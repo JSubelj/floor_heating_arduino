@@ -32,6 +32,7 @@ int calculatePositionOfMixValve(int temp_wanted, int temp_floor_inlet, int temp_
 }
 
 int state=0;
+int old_position = 0;
 bool newValue = true;
 int wanted_position = 0;
 unsigned long start_waiting;
@@ -54,7 +55,11 @@ void control(int temp_wanted, int temp_floor_inlet, int temp_floor_outlet, int t
             stopPump();
         }
         if(newValue){
+            old_position = wanted_position;
             wanted_position = calculatePositionOfMixValve(temp_wanted, temp_floor_inlet, temp_floor_outlet, temp_furnice);
+            if(wanted_position <= old_position && temp_floor_inlet < temp_wanted){
+                wanted_position = old_position+1;
+            }
             newValue = false;
         }
         if(setToPosition(wanted_position)){
