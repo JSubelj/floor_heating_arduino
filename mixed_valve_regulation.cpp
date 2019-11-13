@@ -36,6 +36,7 @@ int old_position = 0;
 bool newValue = true;
 int wanted_position = 0;
 unsigned long start_waiting;
+
 void control(int temp_wanted, int temp_floor_inlet, int temp_floor_outlet, int temp_furnice){
     switch (state)
     {
