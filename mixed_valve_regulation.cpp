@@ -60,6 +60,9 @@ void control(int temp_wanted, int temp_floor_inlet, int temp_floor_outlet, int t
             wanted_position = calculatePositionOfMixValve(temp_wanted, temp_floor_inlet, temp_floor_outlet, temp_furnice);
             if(wanted_position <= old_position && temp_floor_inlet < temp_wanted){
                 wanted_position = old_position+1;
+                if(wanted_position>STEPS){
+                  wanted_position = STEPS;
+                }
             }
             newValue = false;
         }

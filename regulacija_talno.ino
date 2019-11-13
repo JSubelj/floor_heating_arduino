@@ -6,7 +6,8 @@
 #include "sensors_and_relays.h"
 #include "mixed_valve_regulation.h"
 #include "serial_interface.h"
-
+#include "interface.h"
+#include <EEPROM.h>
 #define TICK_DURATION_MS 50
 
 // Taski:
@@ -16,19 +17,16 @@
 
 // save_indicator must be 1488
 struct EEPROMData {
-    int save_indicator,
-    int wanted_temp,
-    int sensor_correction
+    int wanted_temp;
+    int sensor_correction;
 };
+
+int temp_wanted = INITIAL_TEMPERATURE;
 
 void setup(){
     Serial.begin(115200);
-    struct EEPROMData data;
-    EEPROMLoadConfig(data);
-    if(data.save_indicator = 1488){
-        temp_wanted = data.wanted_temp;
-        temp_correction = data.sensor_correction;
-    }
+    
+    
     while (!Serial);  
     pinMode(TEMP_FURNICE, INPUT);
     pinMode(TEMP_FLOOR_INLET, INPUT);
@@ -41,6 +39,7 @@ void setup(){
     for(int i=0; all_LEDs[i] != -1; i++){
         pinMode(all_LEDs[i], OUTPUT);
     }
+    pinMode(INDICATOR_LED, OUTPUT);
     pinMode(BUTTON_TEMP_DOWN, INPUT_PULLUP);
     pinMode(BUTTON_TEMP_UP, INPUT_PULLUP);
 
@@ -48,19 +47,18 @@ void setup(){
     digitalWrite(RELAY_INCREASE_TEMP, 1);
     digitalWrite(RELAY_PUMP, 1);
     digitalWrite(MIXER_VALVE_LED, 0);
+    EEPROM.get(0, temp_wanted);
+    EEPROM.get(sizeof(int),temp_correction);
     
     
 }
 
 
-int temp_wanted = INITIAL_TEMPERATURE;
-int temp_correction = TEMPERATURE_CORRECTION;
+
 
 int TOO_HOT = false;
 unsigned long ten_minutes_timer = millis();
-unsigned long timer_50ms = millist();
-unsigned long timer_250ms = millist();
-unsigned long timer_500ms = millist();
+
 
 
 unsigned long start_time = millis();
@@ -79,6 +77,7 @@ float temp_floor_outlet_sum;
 float temp_furnice_sum;
 unsigned long ticks_millis = millis();
 int ticks = 0;
+int temp_reading =0;
 void loop(){
   // 3600mV pri 100°C 373K
   /*#define sensorPin A0
@@ -106,9 +105,7 @@ void loop(){
 
     // exec every 50 ms
     if(ticks % (50/TICK_DURATION_MS) == 0){
-        timer_50ms = millis();
         // +++++++++input read+++++++++
-        temp_wanted = read_input(temp_wanted);
         // ---------input read---------
 
         // +++++++++temp read+++++++++
@@ -132,42 +129,65 @@ void loop(){
         select_adc_channel++;
         select_adc_channel%=3;
         // -------temp read-----------
+
+        if(temp_reading >=20){
+          temp_reading = 0;
+          temp_floor_inlet =  round(temp_floor_inlet_sum/readings_taken_in);
+          temp_floor_outlet = round(temp_floor_outlet_sum/readings_taken_out);
+          temp_furnice = round(temp_furnice_sum/readings_taken_furnice);
+          readings_taken_in = 0;
+          readings_taken_out = 0;
+          readings_taken_furnice = 0;
+          start_time_temp_reading = millis();
+          temp_floor_inlet_sum = 0;
+          temp_floor_outlet_sum = 0;
+          temp_furnice_sum = 0;
+  
+
+          if(temp_floor_inlet > temp_wanted-3 && temp_floor_inlet < temp_wanted+3){
+                turnOnMixValveLight();
+          }else{
+            turnOffMixValveLight();
+          }
+          if(temp_floor_inlet >= MAX_INLET_TEMP){
+              TOO_HOT = true;
+              stopPump();
+          }
+          
+        }
+        temp_reading++;
     }
 
     // exec every 250 ms
+    static int current_mode = 0;
     if(ticks % (250/TICK_DURATION_MS) == 0){
-        timer_250ms = millis();
+      switch(current_mode){
+        case 0: set_leds(temp_wanted,1);break;
+        /*case 1: set_leds(temp_floor_inlet,2);break;
+        case 2: set_leds(temp_floor_outlet,3);break;
+        case 3: set_leds(temp_floor_outlet,4);break;*/
 
-        set_leds(temp_wanted);
+      }
+                
+
     }    
 
 
         
-    // exec every 250 ms
-    if(ticks % (500/TICK_DURATION_MS) == 0){
-        temp_floor_inlet =  round(temp_floor_inlet_sum/readings_taken_in);
-        temp_floor_outlet = round(temp_floor_outlet_sum/readings_taken_out);
-        temp_furnice = round(temp_furnice_sum/readings_taken_furnice);
-        readings_taken = 0;
-        start_time_temp_reading = millis();
-        temp_floor_inlet_sum = 0;
-        temp_floor_outlet_sum = 0;
-        temp_furnice_sum = 0;
-
-
-        if(temp_floor_inlet >= MAX_INLET_TEMP){
-            TOO_HOT = true;
-            stopPump();
+    // exec every 100 ms
+    if(ticks % (100/TICK_DURATION_MS) == 0){
+        int old_temp = temp_wanted;
+        temp_wanted = read_input_down(temp_wanted);
+        temp_wanted = read_input_up(temp_wanted);
+        if(old_temp!= temp_wanted){
+          Serial.println("stored");
+          EEPROMSaveConfig(temp_wanted,temp_correction);
+          
+          EEPROMLoadConfig(&temp_wanted,&temp_correction);
+        
         }
 
-        Serial.print("Wanted temperature: ");
-        Serial.print(temp_wanted);
-        Serial.print("; Temperature floor inlet: ");
-        Serial.print(temp_floor_inlet);
-        Serial.print("; Temperature floor outlet: ");
-        Serial.print(temp_floor_outlet);
-        Serial.print("; Temperature furnice: ");
-        Serial.println(temp_furnice);
+        
     }
     
     if(ticks % (1000/TICK_DURATION_MS) == 0){
@@ -182,7 +202,14 @@ void loop(){
         Serial.print("; Wanted position: ");
         Serial.println(wanted_position);
         Serial.println();
-        Serial.flush();
+        Serial.print("Wanted temperature: ");
+        Serial.print(temp_wanted);
+        Serial.print("; Temperature floor inlet: ");
+        Serial.print(temp_floor_inlet);
+        Serial.print("; Temperature floor outlet: ");
+        Serial.print(temp_floor_outlet);
+        Serial.print("; Temperature furnice: ");
+        Serial.println(temp_furnice);
         start_time = millis();
     }
 
@@ -206,12 +233,8 @@ void loop(){
         default: break;      
     }
     if(serialData[0]){
-        struct EEPROMData ed { 
-            .save_indicator = 1488,
-            .wanted_temp = temp_wanted,
-            .sensor_correction = temp_wanted
-            };
-        EEPROMSaveConfig(ed);
+        
+         EEPROMSaveConfig(temp_wanted,temp_correction);
     }
 
 }

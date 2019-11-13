@@ -19,9 +19,10 @@
 #define LED_45_C 40
 #define LED_50_C 38
 #define LED_55_C 36
+#define INDICATOR_LED 34
 
-#define BUTTON_TEMP_UP 34
-#define BUTTON_TEMP_DOWN 32
+#define BUTTON_TEMP_UP 32
+#define BUTTON_TEMP_DOWN 30
 
 // const char a_LEDs_10_C[] = { -1 };
 // const char a_LEDs_15_C[] = { LED_15_C, -1 };

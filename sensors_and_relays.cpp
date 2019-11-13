@@ -5,10 +5,11 @@
 #include "sensors_and_relays.h"
 
 int current_position_mix_valve = 0;
+int temp_correction = TEMPERATURE_CORRECTION;
 
 float _readTempInCel(int sensorPin){
   float sensorValue = analogRead(sensorPin);
-  return (sensorValue*5000)/10230 -273 + temp_correction;
+  return (sensorValue*5000)/10230 -273 -temp_correction;
 }
 
 float getFloorInletTemp(){
@@ -34,11 +35,9 @@ struct timer_t timer_close_mix_valve_one_step { .operational = false, .start_tim
 
 
 int closeMixValve(){
-    turnOnMixValveLight();
     decreaseTemp();
     if(millis() - timer_close_mix_valve.start_time > TIME_MIN_MAX_MIXER_MS * 1.5){
         stopMixValve();
-        turnOffMixValveLight();
         current_position_mix_valve = 0;
         timer_close_mix_valve.operational = false;
         return 1;
@@ -48,12 +47,10 @@ int closeMixValve(){
 }
 
 int openMixValveOneStep(){
-    turnOnMixValveLight();
     increaseTemp();
     if(millis() - timer_open_mix_valve_one_step.start_time > TIME_FOR_STEP_MS){
         timer_open_mix_valve_one_step.operational = false;
         stopMixValve();
-        turnOffMixValveLight();
         current_position_mix_valve++;
         current_position_mix_valve = current_position_mix_valve > STEPS ? STEPS : current_position_mix_valve;
         return 1;
