@@ -22,12 +22,16 @@ void getFromSerial(int * serialData){
             *(serialData+1) = new_temp;
             if(str[3]!= ';'){
                 *serialData = 0;
-                Serial.println("Ukaz za spremebo temperature: 't{dvo mesta številka};'");
+                Serial.println("Ukaz za spremebo temperature: 't{dvo mesta številka deljiva s 5};'");
             }
             if(new_temp > 55){
                 *serialData = 0;
                 Serial.println("Temperatura ne sme biti višja kot 55 stopinj!");
             }
+            if(new_temp % 5 != 0){
+                Serial.println("Temperatura mora biti deljiva s 5!");
+            }
+
             if(*serialData){
                 Serial.print("Temperatura je nastavljena na ");
                 Serial.print(*(serialData+1));
@@ -55,7 +59,7 @@ void getFromSerial(int * serialData){
         }
         
         else{
-            Serial.println("Ukaz za spremembo temperature: 't{dvo mesta številka};'");
+            Serial.println("Ukaz za spremembo temperature: 't{dvo mesta številka deljiva s 5};'");
             Serial.println("Ukaz za popravek temperature: 'c{4 mestna stevilka};");
 
         }

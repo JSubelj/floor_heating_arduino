@@ -38,6 +38,12 @@ void setup(){
     pinMode(RELAY_PUMP, OUTPUT);
     pinMode(MIXER_VALVE_LED, OUTPUT);
 
+    for(int i=0; all_LEDs[i] != -1; i++){
+        pinMode(all_LEDs[i], OUTPUT);
+    }
+    pinMode(BUTTON_TEMP_DOWN, INPUT_PULLUP);
+    pinMode(BUTTON_TEMP_UP, INPUT_PULLUP);
+
     digitalWrite(RELAY_DECREASE_TEMP, 1);
     digitalWrite(RELAY_INCREASE_TEMP, 1);
     digitalWrite(RELAY_PUMP, 1);
@@ -54,6 +60,7 @@ int TOO_HOT = false;
 unsigned long start_time = millis();
 unsigned long start_time_temp_reading = millis();
 unsigned long timing_for_adc = millis();
+unsigned long start_time_display_leds = millis();
 int select_adc_channel = 0;
 int readings_taken_in = 0;
 int readings_taken_out = 0;
@@ -64,6 +71,7 @@ int temp_furnice;
 float temp_floor_inlet_sum;    
 float temp_floor_outlet_sum;   
 float temp_furnice_sum;
+
 void loop(){
   // 3600mV pri 100°C 373K
   /*#define sensorPin A0
@@ -82,7 +90,16 @@ void loop(){
   Serial.print(" a2: ");
   Serial.println(voltageOut3);
   delay(1000);*/
-    
+
+  
+
+
+    temp_wanted = read_input(temp_wanted);
+
+    if(millis()-start_time_display_leds > 250){
+        set_leds(temp_wanted);
+        start_time_display_leds = millis();
+    }
     if(millis()-timing_for_adc > 50){
         switch(select_adc_channel){
             case 0:{
