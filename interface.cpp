@@ -1,10 +1,12 @@
 #include "circuit.h"
 #include "Arduino.h"
+#include "shared.h"
+#include "SevSeg.h"
 
 #define  ON 1
 #define OFF 0
 
-void _turn_off_all_leds(){
+/*void _turn_off_all_leds(){
     for(int i=0; all_LEDs[i] != -1; i++){
         digitalWrite( all_LEDs[i], OFF );
     }
@@ -82,29 +84,46 @@ void set_leds(int temp,int mode){
         }
     }*/
 
+void set_display(float temp,int mode){
+  // nastav tkole https://github.com/DeanIsMe/SevSeg
+  char s[6];
+  switch(mode){
+    case 0: sprintf(s, "n%.1f",temp); break;
+    case 1: sprintf(s, "V%.1f",temp); break;
+    case 2: sprintf(s, "I%.1f",temp); break;
+    case 3: sprintf(s, "P%.1f",temp); break;
+    case 4: temp < 0 ?  sprintf(s, "c.%.1f",temp) : sprintf(s, "c%.1f",temp); break;
+  }
+ 
+  sevseg.setChars(s);
+}
 
-int read_input_down(int wanted_temp){
+
+
+
+
+int read_input_down(int wanted_temp, float incremantor, float limit){
     static int old_state_down = 1;
     int new_state1 = digitalRead(BUTTON_TEMP_DOWN);
 
     if(old_state_down ==1 && new_state1 == 0){
-        wanted_temp -= 5;
+        wanted_temp -= incremantor;
           Serial.println("down");
 
     }
     old_state_down=new_state1;
-    if(wanted_temp < 10){
-      wanted_temp=10;
+    if(wanted_temp < limit){
+      wanted_temp=limit;
     }
     return wanted_temp;
     }
 
-int read_input_up(int wanted_temp){
+int read_input_up(int wanted_temp, float incremantor, float limit){
     static int old_state_up = 1;
 
     int new_state = digitalRead(BUTTON_TEMP_UP);
     if(old_state_up == 1 && new_state == 0){
-        wanted_temp += 5;
+        wanted_temp += incremantor;
                   Serial.println("up");
 
     }
@@ -113,8 +132,8 @@ int read_input_up(int wanted_temp){
     
 
      
-    if(wanted_temp > 55){
-      wanted_temp= 55;
+    if(wanted_temp > limit){
+      wanted_temp= limit;
     }
 
     return wanted_temp;

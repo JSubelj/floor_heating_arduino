@@ -13,13 +13,13 @@ int initialisation(){
     return 0;
 }
 
-int calculatePositionOfMixValve(int temp_wanted, int temp_floor_inlet, int temp_floor_outlet, int temp_furnice){
+float calculatePositionOfMixValve(int temp_wanted, int temp_floor_inlet, int temp_floor_outlet, int temp_furnice){
     temp_wanted += MIN_DELTA_INLET_OUTLET_DEG;
     float b = (temp_wanted - temp_floor_outlet);
     float a = (temp_furnice - temp_wanted);
     float procentage = b/(a+b);
-    procentage*=100;
-    int lower = (int) procentage / STEP_SIZE;
+    return procentage;
+    /*int lower = (int) procentage / STEP_SIZE;
     int upper = lower+1;
     int ret;
     if((int)procentage % STEP_SIZE > STEP_SIZE/2.0) {
@@ -28,16 +28,16 @@ int calculatePositionOfMixValve(int temp_wanted, int temp_floor_inlet, int temp_
         ret = lower;
     }
 
-    return ret > STEPS ? STEPS : ret < 0 ? 0 : ret;
+    return ret > STEPS ? STEPS : ret < 0 ? 0 : ret;*/
 }
 
 int state=0;
-int old_position = 0;
+float old_position = 0;
 bool newValue = true;
-int wanted_position = 0;
+float wanted_position = 0;
 unsigned long start_waiting;
 
-void control(int temp_wanted, int temp_floor_inlet, int temp_floor_outlet, int temp_furnice){
+void control(int temp_wanted, float temp_floor_inlet, float temp_floor_outlet, float temp_furnice){
     switch (state)
     {
     case 0:{
@@ -54,14 +54,21 @@ void control(int temp_wanted, int temp_floor_inlet, int temp_floor_outlet, int t
             
         }else if(temp_floor_inlet >= MAX_INLET_TEMP){
             stopPump();
+            setToPosition(0.05);
         }
         if(newValue){
             old_position = wanted_position;
             wanted_position = calculatePositionOfMixValve(temp_wanted, temp_floor_inlet, temp_floor_outlet, temp_furnice);
             if(wanted_position <= old_position && temp_floor_inlet < temp_wanted){
-                wanted_position = old_position+1;
-                if(wanted_position>STEPS){
-                  wanted_position = STEPS;
+                wanted_position = old_position+0.01;
+                if(wanted_position>1){
+                  wanted_position = 1;
+                }
+            }
+            if(wanted_position >= old_position && temp_floor_inlet > temp_wanted+3){
+                wanted_position = old_position-0.01;
+                if(wanted_position<0){
+                  wanted_position = 0;
                 }
             }
             newValue = false;

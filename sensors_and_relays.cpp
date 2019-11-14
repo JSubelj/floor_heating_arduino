@@ -5,6 +5,7 @@
 #include "sensors_and_relays.h"
 
 int current_position_mix_valve = 0;
+float current_position_float = 0;
 int temp_correction = TEMPERATURE_CORRECTION;
 
 float _readTempInCel(int sensorPin){
@@ -32,6 +33,8 @@ struct timer_t {
 struct timer_t timer_close_mix_valve { .operational = false, .start_time =0 };
 struct timer_t timer_open_mix_valve_one_step { .operational = false, .start_time =0 };
 struct timer_t timer_close_mix_valve_one_step { .operational = false, .start_time =0 };
+struct timer_t timer_open_mix_valve_for_time { .operational = false, .start_time =0 };
+struct timer_t timer_close_mix_valve_for_time { .operational = false, .start_time =0 };
 
 
 int closeMixValve(){
@@ -59,6 +62,69 @@ int openMixValveOneStep(){
     
 }
 
+int openMixValveForTime(int ms_time){
+    increaseTemp();
+    if(millis() - timer_open_mix_valve_for_time.start_time >= ms_time){
+        timer_open_mix_valve_for_time.operational = false;
+        stopMixValve();
+        return 1;
+    }
+    return 0;    
+
+}
+
+int closeMixValveForTime(int ms_time){
+    decreaseTemp();
+    if(millis() - timer_close_mix_valve_for_time.start_time >= ms_time){
+        timer_close_mix_valve_for_time.operational = false;
+        stopMixValve();
+        return 1;
+    }
+    return 0;    
+
+}
+
+
+int setToPositionFloat(float position){
+    float positions_to_move = current_position_float-position;
+
+    if(position == 0){
+        if(!timer_close_mix_valve.operational){
+            timer_close_mix_valve.operational = true;
+            timer_close_mix_valve.start_time = millis();
+        }
+        int ret = closeMixValve();
+        return ret && position == current_position_mix_valve;
+    }
+
+    if(positions_to_move < 0){
+        positions_to_move*=-1;
+
+        float time_to_spend = positions_to_move*TIME_MIN_MAX_MIXER_MS;
+        if(!timer_close_mix_valve_for_time.operational){
+            timer_close_mix_valve_for_time.operational = true;
+            timer_close_mix_valve_for_time.start_time = millis();
+        }
+        int ret = closeMixValveForTime(time_to_spend);
+        current_position_float = position;
+        return ret;
+    }
+
+    if(positions_to_move > 0){
+        float time_to_spend = positions_to_move*TIME_MIN_MAX_MIXER_MS;
+        if(!timer_open_mix_valve_for_time.operational){
+            timer_open_mix_valve_for_time.operational = true;
+            timer_open_mix_valve_for_time.start_time = millis();
+        }
+        int ret = openMixValveForTime(time_to_spend);
+        current_position_float = position;
+        return ret;
+    }
+
+    
+
+}
+
 int setToPosition(int position){
     int positions_to_move = current_position_mix_valve-position;
 
@@ -70,6 +136,7 @@ int setToPosition(int position){
         int ret = closeMixValve();
         return ret && position == current_position_mix_valve;
     }
+
 
     if(positions_to_move < 0){
         if(!timer_open_mix_valve_one_step.operational){
@@ -108,12 +175,12 @@ int closeMixValveOneStep(){
     return 0;
 }
 
-void turnOnMixValveLight(){
+void turnOnIndicatorLight(){
     digitalWrite(MIXER_VALVE_LED,1);
 }
 
 
-void turnOffMixValveLight(){
+void turnOffIndicatorLight(){
     digitalWrite(MIXER_VALVE_LED,0);
 }
 

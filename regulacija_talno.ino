@@ -16,10 +16,9 @@
 //  prdob podatke iz 
 
 // save_indicator must be 1488
-struct EEPROMData {
-    int wanted_temp;
-    int sensor_correction;
-};
+
+SevSeg sevseg; //Instantiate a seven segment object
+
 
 int temp_wanted = INITIAL_TEMPERATURE;
 
@@ -34,11 +33,25 @@ void setup(){
     pinMode(RELAY_DECREASE_TEMP, OUTPUT);
     pinMode(RELAY_INCREASE_TEMP, OUTPUT);
     pinMode(RELAY_PUMP, OUTPUT);
-    pinMode(MIXER_VALVE_LED, OUTPUT);
 
-    for(int i=0; all_LEDs[i] != -1; i++){
-        pinMode(all_LEDs[i], OUTPUT);
-    }
+    pinMode(CHANGE_CORRECTION_PIN_GROUND, OUTPUT);
+    pinMode(CHANGE_CORRECTION_PIN_PULLUP, INPUT_PULLUP);
+    digitalWrite(CHANGE_CORRECTION_PIN_GROUND, 0);
+
+
+    // nastav tkole https://github.com/DeanIsMe/SevSeg
+    byte numDigits = 3;
+    byte digitPins[] = {INDICATOR_7_DRAIN, LEFT_7_DRAIN, RIGHT_7_DRAIN};
+    byte segmentPins[] = {A, B, C, D, E, F, G, DP};
+    bool resistorsOnSegments = false; // 'false' means resistors are on digit pins
+    byte hardwareConfig = COMMON_ANODE; // See README.md for options
+    bool updateWithDelays = false; // Default 'false' is Recommended
+    bool leadingZeros = false; // Use 'true' if you'd like to keep the leading zeros
+    bool disableDecPoint = false; // Use 'true' if your decimal point doesn't exist or isn't connected. Then, you only need to specify 7 segmentPins[]
+
+    sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments,
+    updateWithDelays, leadingZeros, disableDecPoint);
+
     pinMode(INDICATOR_LED, OUTPUT);
     pinMode(BUTTON_TEMP_DOWN, INPUT_PULLUP);
     pinMode(BUTTON_TEMP_UP, INPUT_PULLUP);
@@ -69,9 +82,9 @@ int select_adc_channel = 0;
 int readings_taken_in = 0;
 int readings_taken_out = 0;
 int readings_taken_furnice = 0;
-int temp_floor_inlet;    
-int temp_floor_outlet;   
-int temp_furnice;
+float temp_floor_inlet;    
+float temp_floor_outlet;   
+float temp_furnice;
 float temp_floor_inlet_sum;    
 float temp_floor_outlet_sum;   
 float temp_furnice_sum;
@@ -101,6 +114,7 @@ void loop(){
         ticks++;
         ticks_millis = millis();
     }
+    digitalWrite(INDICATOR_LED,!digitalRead(CHANGE_CORRECTION_PIN_PULLUP))
     
 
     // exec every 50 ms
@@ -132,9 +146,9 @@ void loop(){
 
         if(temp_reading >=20){
           temp_reading = 0;
-          temp_floor_inlet =  round(temp_floor_inlet_sum/readings_taken_in);
-          temp_floor_outlet = round(temp_floor_outlet_sum/readings_taken_out);
-          temp_furnice = round(temp_furnice_sum/readings_taken_furnice);
+          temp_floor_inlet =  temp_floor_inlet_sum/readings_taken_in;
+          temp_floor_outlet = temp_floor_outlet_sum/readings_taken_out;
+          temp_furnice = temp_furnice_sum/readings_taken_furnice;
           readings_taken_in = 0;
           readings_taken_out = 0;
           readings_taken_furnice = 0;
@@ -159,16 +173,25 @@ void loop(){
     }
 
     // exec every 250 ms
+    static int n_250ms_passed = 0;
     static int current_mode = 0;
     if(ticks % (250/TICK_DURATION_MS) == 0){
-      switch(current_mode){
-        case 0: set_leds(temp_wanted,1);break;
-        /*case 1: set_leds(temp_floor_inlet,2);break;
-        case 2: set_leds(temp_floor_outlet,3);break;
-        case 3: set_leds(temp_floor_outlet,4);break;*/
-
-      }
-                
+        if(n_250ms_passed == 4){
+            sevseg.blank();
+            current_mode++;
+            current_mode %=5;
+        }else{
+            switch(current_mode){
+                    case 0: set_display(temp_wanted,current_mode);break;
+                    case 1: set_display(temp_floor_inlet,current_mode);break;
+                    case 2: set_display(temp_floor_outlet,current_mode);break;
+                    case 3: set_display(temp_floor_furnice,current_mode);break;
+                    case 4: set_display(temp_correction,current_mode);break;
+                }
+        }
+      
+        n_250ms_passed++;
+        n_250ms_passed %=5;
 
     }    
 
@@ -176,17 +199,25 @@ void loop(){
         
     // exec every 100 ms
     if(ticks % (100/TICK_DURATION_MS) == 0){
-        int old_temp = temp_wanted;
-        temp_wanted = read_input_down(temp_wanted);
-        temp_wanted = read_input_up(temp_wanted);
-        if(old_temp!= temp_wanted){
-          Serial.println("stored");
-          EEPROMSaveConfig(temp_wanted,temp_correction);
-          
-          EEPROMLoadConfig(&temp_wanted,&temp_correction);
-        
+        if(digitalRead(CHANGE_CORRECTION_PIN_PULLUP)){
+            int old_temp = temp_wanted;
+            temp_wanted = read_input_down(temp_wanted,5,10);
+            temp_wanted = read_input_up(temp_wanted,5,55);
+            if(old_temp!= temp_wanted){
+                Serial.println("stored");
+                EEPROMSaveConfig(temp_wanted,temp_correction);
+                set_display(temp_wanted,0);         
+            }
+        }else{
+            int old_temp_correction = temp_correction;
+            temp_correction = read_input_down(temp_correction,0.5,-20);
+            temp_correction = read_input_up(temp_correction,0.5,20);
+            if(old_temp_correction != temp_correction){
+                Serial.println("stored");
+                EEPROMSaveConfig(temp_wanted,temp_correction);
+                set_display(temp_correction,4);   
+            }
         }
-
         
     }
     

@@ -8,18 +8,37 @@
 #define RELAY_INCREASE_TEMP 11
 #define RELAY_PUMP 12
 
-#define MIXER_VALVE_LED 13
+#define INDICATOR_LED 13
 
-#define LED_15_C 52
-#define LED_20_C 50
-#define LED_25_C 48
-#define LED_30_C 46
-#define LED_35_C 44
-#define LED_40_C 42
-#define LED_45_C 40
-#define LED_50_C 38
-#define LED_55_C 36
-#define INDICATOR_LED 34
+
+
+
+#define INDICATOR_7_DRAIN
+#define LEFT_7_DRAIN
+#define RIGHT_7_DRAIN
+#define A
+#define B
+#define C
+#define D
+#define E
+#define F
+#define G
+#define DP
+#define CHANGE_CORRECTION_PIN_PULLUP
+#define CHANGE_CORRECTION_PIN_GROUND
+
+
+
+// #define LED_15_C 52
+// #define LED_20_C 50
+// #define LED_25_C 48
+// #define LED_30_C 46
+// #define LED_35_C 44
+// #define LED_40_C 42
+// #define LED_45_C 40
+// #define LED_50_C 38
+// #define LED_55_C 36 
+//#define INDICATOR_LED 34
 
 #define BUTTON_TEMP_UP 32
 #define BUTTON_TEMP_DOWN 30
