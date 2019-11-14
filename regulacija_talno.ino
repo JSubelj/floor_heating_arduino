@@ -1,4 +1,4 @@
-// temp senzor: https://randomnerdtutorials.com/arduino-lm35-lm335-lm34-temperature-sensor/
+// temp senzor: https://randomnerdtutorials.com/arduino-lm35-lm335-lm34-temperatur2000e-sensor/
 #include "mixed_valve_regulation.h"
 
 #include "Arduino.h"
@@ -40,20 +40,35 @@ void setup(){
     pinMode(CHANGE_CORRECTION_PIN_GROUND, OUTPUT);
     pinMode(CHANGE_CORRECTION_PIN_PULLUP, INPUT_PULLUP);
     digitalWrite(CHANGE_CORRECTION_PIN_GROUND, 0);
+    pinMode(A, OUTPUT);
+    pinMode(B, OUTPUT);
+    pinMode(C, OUTPUT);
+    pinMode(D, OUTPUT);
+    pinMode(E, OUTPUT);
+    pinMode(F1, OUTPUT);
+    pinMode(G, OUTPUT);
+    pinMode(DP, OUTPUT);
 
 
     // nastav tkole https://github.com/DeanIsMe/SevSeg
     byte numDigits = 3;
     byte digitPins[] = {INDICATOR_7_DRAIN, LEFT_7_DRAIN, RIGHT_7_DRAIN};
-    byte segmentPins[] = {A, B, C, D, E, F, G, DP};
+    byte segmentPins[] = {A, B, C, D, E, F1, G, DP};
     bool resistorsOnSegments = false; // 'false' means resistors are on digit pins
-    byte hardwareConfig = COMMON_ANODE; // See README.md for options
+    byte hardwareConfig = COMMON_CATHODE; // See README.md for options
     bool updateWithDelays = false; // Default 'false' is Recommended
     bool leadingZeros = false; // Use 'true' if you'd like to keep the leading zeros
     bool disableDecPoint = false; // Use 'true' if your decimal point doesn't exist or isn't connected. Then, you only need to specify 7 segmentPins[]
 
-    sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments,
-    updateWithDelays, leadingZeros, disableDecPoint);
+    //sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments,
+    //updateWithDelays, leadingZeros, disableDecPoint);
+    //sevseg.setBrightness(90);
+
+    digitalWrite(INDICATOR_7_DRAIN,0);
+    //digitalWrite(LEFT_7_DRAIN,0);
+    //digitalWrite(RIGHT_7_DRAIN,0);
+    digitalWrite(49,1);
+
 
     pinMode(INDICATOR_LED, OUTPUT);
     pinMode(BUTTON_TEMP_DOWN, INPUT_PULLUP);
@@ -64,8 +79,8 @@ void setup(){
     digitalWrite(RELAY_PUMP, 1);
     EEPROM.get(0, temp_wanted);
     EEPROM.get(sizeof(int),temp_correction);
-    
-    
+
+    //sevseg.setChars("abc");
 }
 
 
@@ -94,8 +109,9 @@ unsigned long ticks_millis = millis();
 int ticks = 0;
 int temp_reading =0;
 void loop(){
-      control1(temp_wanted, temp_floor_inlet, temp_floor_outlet, temp_furnice);
-
+      //sevseg.refreshDisplay();
+      //control1(temp_wanted, temp_floor_inlet, temp_floor_outlet, temp_furnice);
+      
   // 3600mV pri 100°C 373K
   /*#define sensorPin A0
 
@@ -114,7 +130,7 @@ void loop(){
   Serial.println(voltageOut3);
   delay(1000);*/
     
-    if(millis() - ticks_millis >= TICK_DURATION_MS){
+    /*if(millis() - ticks_millis >= TICK_DURATION_MS){
         ticks++;
         ticks_millis = millis();
     }
@@ -175,7 +191,7 @@ void loop(){
     // exec every 250 ms
     static int n_250ms_passed = 0;
     static int current_mode = 0;
-    if(ticks % (250/TICK_DURATION_MS) == 0){
+    /*if(ticks % (250/TICK_DURATION_MS) == 0){
         if(n_250ms_passed == 4){
             sevseg.blank();
             current_mode++;
@@ -193,11 +209,11 @@ void loop(){
         n_250ms_passed++;
         n_250ms_passed %=5;
 
-    }    
+    }    */
 
 
         
-    // exec every 100 ms
+   /* // exec every 100 ms
     if(ticks % (100/TICK_DURATION_MS) == 0){
         if(digitalRead(CHANGE_CORRECTION_PIN_PULLUP)){
             int old_temp = temp_wanted;
@@ -265,6 +281,6 @@ void loop(){
     if(serialData[0]){
         
          EEPROMSaveConfig(temp_wanted,temp_correction);
-    }
+    }*/
 
 }

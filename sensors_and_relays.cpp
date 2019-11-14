@@ -120,6 +120,7 @@ int setToPositionFloat(float position){
         current_position_float = position;
         return ret;
     }
+    return 1;
 
     
 
