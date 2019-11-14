@@ -6,11 +6,11 @@
 
 int current_position_mix_valve = 0;
 float current_position_float = 0;
-int temp_correction = TEMPERATURE_CORRECTION;
+float temp_correction = TEMPERATURE_CORRECTION;
 
 float _readTempInCel(int sensorPin){
   float sensorValue = analogRead(sensorPin);
-  return (sensorValue*5000)/10230 -273 -temp_correction;
+  return (sensorValue*5000)/10230 -273 + temp_correction;
 }
 
 float getFloorInletTemp(){

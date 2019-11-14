@@ -8,7 +8,7 @@ extern "C" {
 
 extern float wanted_position;
 extern int current_position_mix_valve;
-extern int temp_correction;
+extern float temp_correction;
 extern SevSeg sevseg; //Instantiate a seven segment object
 
 #ifdef __cplusplus

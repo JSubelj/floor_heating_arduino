@@ -249,9 +249,9 @@ void loop(){
 
 
 
-    int serialData[2]= {};
+    float serialData[2]= {};
     getFromSerial(serialData);
-    switch(serialData[0]){
+    switch((int)serialData[0]){
         case 1:{
             temp_wanted = serialData[1];
             break;
