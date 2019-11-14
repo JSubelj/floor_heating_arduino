@@ -13,19 +13,19 @@
 
 
 
-#define INDICATOR_7_DRAIN
-#define LEFT_7_DRAIN
-#define RIGHT_7_DRAIN
-#define A
-#define B
-#define C
-#define D
-#define E
-#define F
-#define G
-#define DP
-#define CHANGE_CORRECTION_PIN_PULLUP
-#define CHANGE_CORRECTION_PIN_GROUND
+#define INDICATOR_7_DRAIN 52
+#define LEFT_7_DRAIN 51
+#define RIGHT_7_DRAIN 50
+#define A 49
+#define B 48
+#define C 47
+#define D 46
+#define E 45
+#define F 44
+#define G 43
+#define DP 42
+#define CHANGE_CORRECTION_PIN_PULLUP 41
+#define CHANGE_CORRECTION_PIN_GROUND 40
 
 
 
@@ -53,7 +53,7 @@
 // const char a_LEDs_45_C[] = { LED_15_C, LED_20_C, LED_25_C, LED_30_C, LED_35_C, LED_40_C, LED_45_C, -1 };
 // const char a_LEDs_50_C[] = { LED_15_C, LED_20_C, LED_25_C, LED_30_C, LED_35_C, LED_40_C, LED_45_C, LED_50_C -1 };
 // const char a_LEDs_55_C[] = { LED_15_C, LED_20_C, LED_25_C, LED_30_C, LED_35_C, LED_40_C, LED_45_C, LED_50_C, LED_55_C, -1 };
-const char all_LEDs[]    = { LED_15_C, LED_20_C, LED_25_C, LED_30_C, LED_35_C, LED_40_C, LED_45_C, LED_50_C, LED_55_C, -1 };
+// const char all_LEDs[]    = { LED_15_C, LED_20_C, LED_25_C, LED_30_C, LED_35_C, LED_40_C, LED_45_C, LED_50_C, LED_55_C, -1 };
 
 
 

@@ -165,7 +165,6 @@ int closeMixValveOneStep(){
     decreaseTemp();
     if(millis() - timer_close_mix_valve_one_step.start_time > TIME_FOR_STEP_MS){
         stopMixValve();
-        turnOffMixValveLight();
 
         current_position_mix_valve--;
         current_position_mix_valve = current_position_mix_valve < 0 ? 0 : current_position_mix_valve;
@@ -175,14 +174,14 @@ int closeMixValveOneStep(){
     return 0;
 }
 
-void turnOnIndicatorLight(){
+/*void turnOnIndicatorLight(){
     digitalWrite(MIXER_VALVE_LED,1);
 }
 
 
 void turnOffIndicatorLight(){
     digitalWrite(MIXER_VALVE_LED,0);
-}
+}*/
 
 void increaseTemp(){
     digitalWrite(RELAY_DECREASE_TEMP,1);

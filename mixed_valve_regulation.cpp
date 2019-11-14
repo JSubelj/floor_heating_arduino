@@ -37,7 +37,7 @@ bool newValue = true;
 float wanted_position = 0;
 unsigned long start_waiting;
 
-void control(int temp_wanted, float temp_floor_inlet, float temp_floor_outlet, float temp_furnice){
+void control1(int temp_wanted, float temp_floor_inlet, float temp_floor_outlet, float temp_furnice){
     switch (state)
     {
     case 0:{

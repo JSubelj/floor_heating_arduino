@@ -1,14 +1,17 @@
 // temp senzor: https://randomnerdtutorials.com/arduino-lm35-lm335-lm34-temperature-sensor/
+#include "mixed_valve_regulation.h"
+
 #include "Arduino.h"
 #include "circuit.h"
 #include "shared.h"
 #include "configuration.h"
 #include "sensors_and_relays.h"
-#include "mixed_valve_regulation.h"
 #include "serial_interface.h"
 #include "interface.h"
 #include <EEPROM.h>
 #define TICK_DURATION_MS 50
+#include "SevSeg.h"
+
 
 // Taski:
 //  mer temperaturo
@@ -19,7 +22,7 @@
 
 SevSeg sevseg; //Instantiate a seven segment object
 
-
+//int control(int a, int b, int c, int d){return 0;}
 int temp_wanted = INITIAL_TEMPERATURE;
 
 void setup(){
@@ -59,7 +62,6 @@ void setup(){
     digitalWrite(RELAY_DECREASE_TEMP, 1);
     digitalWrite(RELAY_INCREASE_TEMP, 1);
     digitalWrite(RELAY_PUMP, 1);
-    digitalWrite(MIXER_VALVE_LED, 0);
     EEPROM.get(0, temp_wanted);
     EEPROM.get(sizeof(int),temp_correction);
     
@@ -92,6 +94,8 @@ unsigned long ticks_millis = millis();
 int ticks = 0;
 int temp_reading =0;
 void loop(){
+      control1(temp_wanted, temp_floor_inlet, temp_floor_outlet, temp_furnice);
+
   // 3600mV pri 100°C 373K
   /*#define sensorPin A0
 
@@ -114,7 +118,7 @@ void loop(){
         ticks++;
         ticks_millis = millis();
     }
-    digitalWrite(INDICATOR_LED,!digitalRead(CHANGE_CORRECTION_PIN_PULLUP))
+    digitalWrite(INDICATOR_LED,!digitalRead(CHANGE_CORRECTION_PIN_PULLUP));
     
 
     // exec every 50 ms
@@ -158,11 +162,7 @@ void loop(){
           temp_furnice_sum = 0;
   
 
-          if(temp_floor_inlet > temp_wanted-3 && temp_floor_inlet < temp_wanted+3){
-                turnOnMixValveLight();
-          }else{
-            turnOffMixValveLight();
-          }
+         
           if(temp_floor_inlet >= MAX_INLET_TEMP){
               TOO_HOT = true;
               stopPump();
@@ -185,7 +185,7 @@ void loop(){
                     case 0: set_display(temp_wanted,current_mode);break;
                     case 1: set_display(temp_floor_inlet,current_mode);break;
                     case 2: set_display(temp_floor_outlet,current_mode);break;
-                    case 3: set_display(temp_floor_furnice,current_mode);break;
+                    case 3: set_display(temp_furnice,current_mode);break;
                     case 4: set_display(temp_correction,current_mode);break;
                 }
         }
@@ -247,7 +247,6 @@ void loop(){
 
     // exec all the time
 
-    control(temp_wanted, temp_floor_inlet, temp_floor_outlet, temp_furnice);
 
 
     int serialData[2]= {};
