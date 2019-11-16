@@ -56,13 +56,13 @@ void setup(){
     byte segmentPins[] = {A, B, C, D, E, F1, G, DP};
     bool resistorsOnSegments = false; // 'false' means resistors are on digit pins
     byte hardwareConfig = COMMON_CATHODE; // See README.md for options
-    bool updateWithDelays = false; // Default 'false' is Recommended
+    bool updateWithDelays = true; // Default 'false' is Recommended
     bool leadingZeros = false; // Use 'true' if you'd like to keep the leading zeros
     bool disableDecPoint = false; // Use 'true' if your decimal point doesn't exist or isn't connected. Then, you only need to specify 7 segmentPins[]
 
-    //sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments,
-    //updateWithDelays, leadingZeros, disableDecPoint);
-    //sevseg.setBrightness(90);
+    sevseg.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments,
+    updateWithDelays, leadingZeros, disableDecPoint);
+    
 
     digitalWrite(INDICATOR_7_DRAIN,0);
     //digitalWrite(LEFT_7_DRAIN,0);
@@ -80,7 +80,7 @@ void setup(){
     EEPROM.get(0, temp_wanted);
     EEPROM.get(sizeof(int),temp_correction);
 
-    //sevseg.setChars("abc");
+    sevseg.setChars("abc");
 }
 
 
@@ -109,30 +109,21 @@ unsigned long ticks_millis = millis();
 int ticks = 0;
 int temp_reading =0;
 void loop(){
-      //sevseg.refreshDisplay();
-      //control1(temp_wanted, temp_floor_inlet, temp_floor_outlet, temp_furnice);
+  unsigned int starttime=millis();
+      sevseg.refreshDisplay();
+        //    Serial.print(millis()-starttime);
+
+      //Serial.println("Took refreshing:");
+      control1(temp_wanted, temp_floor_inlet, temp_floor_outlet, temp_furnice);
       
   // 3600mV pri 100°C 373K
-  /*#define sensorPin A0
 
-  float sensorValue = analogRead(A0);
-  float voltageOut1 = (sensorValue*5000)/10240 -273;
-   sensorValue = analogRead(A1);
-  float voltageOut2 = (sensorValue*5000)/10240 -273;
-   sensorValue = analogRead(A2);
-  float voltageOut3 = (sensorValue*5000)/10240 -273;
+            static bool exec_250 = false;
 
-  Serial.print("a0: ");
-  Serial.print(voltageOut1);
-  Serial.print(" a1: ");
-  Serial.print(voltageOut2);
-  Serial.print(" a2: ");
-  Serial.println(voltageOut3);
-  delay(1000);*/
-    
-    /*if(millis() - ticks_millis >= TICK_DURATION_MS){
+    if(millis() - ticks_millis >= TICK_DURATION_MS){
         ticks++;
         ticks_millis = millis();
+        exec_250 = true;
     }
     digitalWrite(INDICATOR_LED,!digitalRead(CHANGE_CORRECTION_PIN_PULLUP));
     
@@ -189,31 +180,31 @@ void loop(){
     }
 
     // exec every 250 ms
-    static int n_250ms_passed = 0;
     static int current_mode = 0;
-    /*if(ticks % (250/TICK_DURATION_MS) == 0){
-        if(n_250ms_passed == 4){
-            sevseg.blank();
-            current_mode++;
-            current_mode %=5;
-        }else{
-            switch(current_mode){
-                    case 0: set_display(temp_wanted,current_mode);break;
-                    case 1: set_display(temp_floor_inlet,current_mode);break;
-                    case 2: set_display(temp_floor_outlet,current_mode);break;
-                    case 3: set_display(temp_furnice,current_mode);break;
-                    case 4: set_display(temp_correction,current_mode);break;
-                }
-        }
-      
-        n_250ms_passed++;
-        n_250ms_passed %=5;
+        static unsigned long current_time = millis();
 
-    }    */
-
+    if(ticks % (3000/TICK_DURATION_MS) == 0 && exec_250){
+      exec_250 = false;
+     
 
         
-   /* // exec every 100 ms
+      Serial.print("passed ");
+      Serial.println(millis()-current_time);
+      current_time=millis();
+      
+      current_mode++;
+      current_mode %=5;
+      switch(current_mode){
+          case 0: set_display(temp_wanted,current_mode);break;
+          case 1: set_display(temp_floor_inlet,current_mode);break;
+          case 2: set_display(temp_floor_outlet,current_mode);break;
+          case 3: set_display(temp_furnice,current_mode);break;
+          case 4: set_display(temp_correction,current_mode);break;
+      }    
+      }
+
+        
+   // exec every 100 ms
     if(ticks % (100/TICK_DURATION_MS) == 0){
         if(digitalRead(CHANGE_CORRECTION_PIN_PULLUP)){
             int old_temp = temp_wanted;
@@ -225,9 +216,9 @@ void loop(){
                 set_display(temp_wanted,0);         
             }
         }else{
-            int old_temp_correction = temp_correction;
-            temp_correction = read_input_down(temp_correction,0.5,-20);
-            temp_correction = read_input_up(temp_correction,0.5,20);
+            float old_temp_correction = temp_correction;
+            temp_correction = read_input_down(temp_correction,0.5,-9.5);
+            temp_correction = read_input_up(temp_correction,0.5,9.5);
             if(old_temp_correction != temp_correction){
                 Serial.println("stored");
                 EEPROMSaveConfig(temp_wanted,temp_correction);
@@ -237,7 +228,7 @@ void loop(){
         
     }
     
-    if(ticks % (1000/TICK_DURATION_MS) == 0){
+    if(ticks % (10000/TICK_DURATION_MS) == 0){
         Serial.print("Relay mixer decrease: ");
         Serial.print(!digitalRead(RELAY_DECREASE_TEMP));
         Serial.print("; Relay mixer increase: ");
@@ -281,6 +272,6 @@ void loop(){
     if(serialData[0]){
         
          EEPROMSaveConfig(temp_wanted,temp_correction);
-    }*/
+    }
 
 }

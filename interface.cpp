@@ -88,21 +88,25 @@ void set_display(float temp,int mode){
   // nastav tkole https://github.com/DeanIsMe/SevSeg
   char s[6];
   switch(mode){
-    case 0: sprintf(s, "n%.1f",temp); break;
-    case 1: sprintf(s, "V%.1f",temp); break;
-    case 2: sprintf(s, "I%.1f",temp); break;
-    case 3: sprintf(s, "P%.1f",temp); break;
-    case 4: temp < 0 ?  sprintf(s, "c.%.1f",temp) : sprintf(s, "c%.1f",temp); break;
+    case 0: sprintf(s, "n%d",round(temp)); break;
+    case 1: sprintf(s, "V%d",round(temp)); break;
+    case 2: sprintf(s, "I%d",round(temp)); break;
+    case 3: sprintf(s, "P%d",round(temp)); break;
+    case 4: temp < 0 ?  sprintf(s, "c.%d.%1d", (int)(-1*temp), (int)(temp*-100)%100) : sprintf(s, "c%d.%1d", (int)temp, (int)(temp*100)%100); break;
   }
  
   sevseg.setChars(s);
+  Serial.print("Display: ");
+  Serial.println(s);
+  Serial.print("num: ");
+  Serial.println(temp);
 }
 
 
 
 
 
-int read_input_down(int wanted_temp, float incremantor, float limit){
+float read_input_down(float wanted_temp, float incremantor, float limit){
     static int old_state_down = 1;
     int new_state1 = digitalRead(BUTTON_TEMP_DOWN);
 
@@ -118,7 +122,7 @@ int read_input_down(int wanted_temp, float incremantor, float limit){
     return wanted_temp;
     }
 
-int read_input_up(int wanted_temp, float incremantor, float limit){
+float read_input_up(float wanted_temp, float incremantor, float limit){
     static int old_state_up = 1;
 
     int new_state = digitalRead(BUTTON_TEMP_UP);
